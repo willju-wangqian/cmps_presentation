@@ -1,0 +1,184 @@
+---
+title: "CMPS Package"
+author: "Wangqian (Will) Ju"
+date: "2020-11-25"
+output:
+  xaringan::moon_reader:
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_HTMLorMML"
+    css: ["default", "css/csafe.css", "css/csafe-fonts.css", "css/this-presentation.css"]
+    lib_dir: libs
+    nature:
+      countIncrementalSlides: false
+---
+
+class: primary-blue
+## Install
+
+```{r tidy=FALSE, eval=FALSE}
+# install.packages("devtools")
+devtools::install_github("willju-wangqian/CMPS")
+```
+
+---
+class: primary-blue
+## The Main Function
+
+```{r, eval=FALSE}
+library(CMPS)
+
+data("bullets")
+land23 <- bullets$sigs[bullets$bulletland == "2-3"][[1]]
+land12 <- bullets$sigs[bullets$bulletland == "1-2"][[1]]
+
+x <- land23$sig
+y <- land12$sig
+
+cmps_result <- extract_feature_cmps(x, y, 
+                             seg_scale_max = 3, npeaks.set = c(5, 3, 1),
+                             seg_length = 50, Tx = 25, full_result = TRUE)
+
+# extract_feature_cmps(
+#   x,
+#   y,
+#   seg_length = 50,
+#   seg_scale_max = 3,
+#   Tx = 25,
+#   npeaks.set = c(5, 3, 1),
+#   full_result = FALSE
+# )
+```
+
+---
+class: primary-blue
+## Input
+
+- `x`, `y` are numeric vectors
+  - `x` is the vector of the reference bullet signature/profile that will be divided into basis segments
+  - `y` is the vector of the comparison bullet signature/profile
+  
+- if we plot signatures `x` and `y`, we have
+.img50[![](images/step0.png)]
+
+---
+class: primary-blue
+## Multi segment lengths
+
+- multi-peak inspection at different segment scales
+  - `seg_scale_max = 3, npeaks.set = c(5, 3, 1)`
+  - detect 5 peaks at scale one; 3 peaks at scale two; 1 peak at scale three
+  - default setting
+  
+- multi-peak inspection
+  - `seg_scale_max = 1, npeaks.set = c(5)`
+  - faster in running speed
+
+---
+class: primary-blue
+## Output
+- `CMPS.score`: the CMPS score of this comparison
+- `nseg`: the number of basis segments obtained from the reference profile
+- `rec.position`: the recommended position that results in the CMPS score
+- `pos.df`: a dataframe that includes all positions and their corresponding CMPS score
+
+```{r, echo=FALSE}
+cmps_result <- readRDS("ppt_object3_cmps_result.rds")
+```
+
+```{r}
+cmps_result$CMPS.score
+cmps_result$nseg
+cmps_result$rec.position
+```
+
+```{r, eval=FALSE}
+cmps_result$pos.df
+```
+
+---
+class: primary-blue
+## Full Comparison of Two Bullets
+
+- The bullet examples are coming from Hamby252; the url of these bullets are stored in `bullets$source`
+
+```{r, eval=FALSE}
+library(CMPS)
+data("bullets")
+
+bullets$source
+```
+  
+- We have two bullets, and each bullet has 6 lands
+
+---
+class: primary-blue
+## Full Comparison of Two Bullets
+
+```{r, eval=FALSE}
+library(tidyverse)
+library(bulletxtrctr)
+library(CMPS)
+
+data("bullets")
+
+lands <- unique(bullets$bulletland)
+
+comparisons <- data.frame(expand.grid(land1 = lands[1:6], land2 = lands[7:12]), 
+                          stringsAsFactors = FALSE)
+
+# Obtain the signatures
+comparisons <- comparisons %>% mutate(
+  aligned = purrr::map2(.x = land1, .y = land2, 
+                        .f = function(xx, yy) {
+                          land1 <- bullets$sigs[bullets$bulletland == xx][[1]]
+                          land2 <- bullets$sigs[bullets$bulletland == yy][[1]]
+                          land1$bullet <- "first-land"
+                          land2$bullet <- "second-land"
+                          
+                          sig_align(land1$sig, land2$sig)
+                        }))
+```
+
+---
+class: primary-blue
+## Full Comparison of Two Bullets
+
+```{r, echo=FALSE}
+cp1 <- readRDS("ppt_object2_cp1.rds")
+```
+
+```{r, eval=FALSE}
+# Compute the CMPS score
+comparisons.cmps <- comparisons %>%
+  mutate(cmps = aligned %>% purrr::map_dbl(.f = function(a) {
+    extract_feature_cmps(a$lands$sig1, a$lands$sig2, full_result = FALSE)
+  }))
+
+cp1 <- comparisons.cmps %>% select(land1, land2, cmps)
+```
+
+```{r}
+head(cp1, 10)
+```
+
+---
+class: primary-blue
+## Full Comparison of Two Bullets
+
+We can also convert the result into a matrix
+
+```{r}
+cp1.matrix <- matrix(nrow = 6, ncol = 6)
+
+for(i in 1:6) {
+  cp1.matrix[i,] <- cp1$cmps[1:6 + 6*(i-1)]
+}
+
+rownames(cp1.matrix) <- paste("1", 1:6, sep = '-')
+colnames(cp1.matrix) <- paste("2", 1:6, sep = '-')
+```
+
+```{r}
+cp1.matrix
+```
+
+
