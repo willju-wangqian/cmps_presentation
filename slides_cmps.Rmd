@@ -188,4 +188,7 @@ cp1.matrix <- t(cp1.matrix)
 cp1.matrix
 ```
 
+---
+class: inverse-blue, center, middle
+# Thank you
 
