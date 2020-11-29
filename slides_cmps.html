@@ -24,41 +24,16 @@ class: center, middle, inverse, title-slide
 class: primary-blue
 ## Install
 
+&lt;br&gt;  
+
+- Since the package is not on CRAN yet, you can install the development version by:  
 
 ```r
-# install.packages("devtools")
+install.packages("devtools")
 devtools::install_github("willju-wangqian/CMPS")
 ```
 
----
-class: primary-blue
-## The Main Function
-
-
-```r
-library(CMPS)
-
-data("bullets")
-land23 &lt;- bullets$sigs[bullets$bulletland == "2-3"][[1]]
-land12 &lt;- bullets$sigs[bullets$bulletland == "1-2"][[1]]
-
-x &lt;- land23$sig
-y &lt;- land12$sig
-
-cmps_result &lt;- extract_feature_cmps(x, y, 
-                             seg_scale_max = 3, npeaks.set = c(5, 3, 1),
-                             seg_length = 50, Tx = 25, full_result = TRUE)
-
-# extract_feature_cmps(
-#   x,
-#   y,
-#   seg_length = 50,
-#   seg_scale_max = 3,
-#   Tx = 25,
-#   npeaks.set = c(5, 3, 1),
-#   full_result = FALSE
-# )
-```
+- The website of the package: [https://willju-wangqian.github.io/CMPS/](https://willju-wangqian.github.io/CMPS/)
 
 ---
 class: primary-blue
@@ -70,59 +45,61 @@ class: primary-blue
   
 - if we plot signatures `x` and `y`, we have
 .img50[![](images/step0.png)]
+  - In this example, `x` and `y` are signatures of a Known Match comparison
 
 ---
 class: primary-blue
-## Multi segment lengths
+## The Main Function
 
-- multi-peak inspection at different segment scales
-  - `seg_scale_max = 3, npeaks.set = c(5, 3, 1)`
-  - detect 5 peaks at scale one; 3 peaks at scale two; 1 peak at scale three
-  - default setting
-  
-- multi-peak inspection
-  - `seg_scale_max = 1, npeaks.set = c(5)`
-  - faster in running speed
 
----
-class: primary-blue
-## Output
-- `CMPS.score`: the CMPS score of this comparison
-- `nseg`: the number of basis segments obtained from the reference profile
-- `rec.position`: the recommended position that results in the CMPS score
-- `pos.df`: a dataframe that includes all positions and their corresponding CMPS score
+```r
+library(CMPS)
+
+cmps_result &lt;- extract_feature_cmps(x, y)
+
+## this comment shows default values of different arguments
+## for more information, use ?extract_feature_cmps 
+# extract_feature_cmps(
+#   x,
+#   y,
+#   seg_length = 50,          
+#   seg_scale_max = 3,
+#   Tx = 25,
+#   npeaks.set = c(5, 3, 1),
+#   full_result = FALSE
+# )
+```
 
 
 
 
 ```r
-cmps_result$CMPS.score
+cmps_result
 ```
 
 ```
 ## [1] 14
 ```
 
-```r
-cmps_result$nseg
-```
-
-```
-## [1] 22
-```
-
-```r
-cmps_result$rec.position
-```
-
-```
-## [1] -5
-```
+- The output of the function (by default) is the CMPS score of this comparison
 
 
-```r
-cmps_result$pos.df
-```
+
+
+---
+class: primary-blue
+## Multi segment lengths
+
+- multi-peak inspection
+  - `seg_scale_max = 1, npeaks.set = c(5)`
+  - faster in running speed
+
+- multi-peak inspection at different segment scales
+  - `seg_scale_max = 3, npeaks.set = c(5, 3, 1)`
+  - detect 5 peaks at scale one; 3 peaks at scale two; 1 peak at scale three
+  - default setting
+  
+
 
 ---
 class: primary-blue
@@ -138,37 +115,10 @@ data("bullets")
 bullets$source
 ```
   
-- We have two bullets, and each bullet has 6 lands
-
----
-class: primary-blue
-## Full Comparison of Two Bullets
+- we have two bullets, and each bullet has 6 lands (6 signatures)
+- in total, we have 36 comparisons
 
 
-```r
-library(tidyverse)
-library(bulletxtrctr)
-library(CMPS)
-
-data("bullets")
-
-lands &lt;- unique(bullets$bulletland)
-
-comparisons &lt;- data.frame(expand.grid(land1 = lands[1:6], land2 = lands[7:12]), 
-                          stringsAsFactors = FALSE)
-
-# Obtain the signatures
-comparisons &lt;- comparisons %&gt;% mutate(
-  aligned = purrr::map2(.x = land1, .y = land2, 
-                        .f = function(xx, yy) {
-                          land1 &lt;- bullets$sigs[bullets$bulletland == xx][[1]]
-                          land2 &lt;- bullets$sigs[bullets$bulletland == yy][[1]]
-                          land1$bullet &lt;- "first-land"
-                          land2$bullet &lt;- "second-land"
-                          
-                          sig_align(land1$sig, land2$sig)
-                        }))
-```
 
 ---
 class: primary-blue
@@ -177,52 +127,12 @@ class: primary-blue
 
 
 
-```r
-# Compute the CMPS score
-comparisons.cmps &lt;- comparisons %&gt;%
-  mutate(cmps = aligned %&gt;% purrr::map_dbl(.f = function(a) {
-    extract_feature_cmps(a$lands$sig1, a$lands$sig2, full_result = FALSE)
-  }))
-
-cp1 &lt;- comparisons.cmps %&gt;% select(land1, land2, cmps)
-```
 
 
-```r
-head(cp1, 10)
-```
 
-```
-##    land1 land2 cmps
-## 1    1-1   2-1    2
-## 2    1-2   2-1    2
-## 3    1-3   2-1    1
-## 4    1-4   2-1    2
-## 5    1-5   2-1    1
-## 6    1-6   2-1   14
-## 7    1-1   2-2    5
-## 8    1-2   2-2    2
-## 9    1-3   2-2    1
-## 10   1-4   2-2    1
-```
-
----
-class: primary-blue
-## Full Comparison of Two Bullets
-
-We can also convert the result into a matrix
+- present the results in a matrix form
 
 
-```r
-cp1.matrix &lt;- matrix(nrow = 6, ncol = 6)
-
-for(i in 1:6) {
-  cp1.matrix[i,] &lt;- cp1$cmps[1:6 + 6*(i-1)]
-}
-
-rownames(cp1.matrix) &lt;- paste("1", 1:6, sep = '-')
-colnames(cp1.matrix) &lt;- paste("2", 1:6, sep = '-')
-```
 
 
 ```r
@@ -230,13 +140,13 @@ cp1.matrix
 ```
 
 ```
-##     2-1 2-2 2-3 2-4 2-5 2-6
-## 1-1   2   2   1   2   1  14
-## 1-2   5   2   1   1   2   2
-## 1-3   3  13   2   1   1   2
-## 1-4   4   1  11   1   2   2
-## 1-5   3   1   2  10   2   1
-## 1-6   2   1   2   1  15   1
+##     1-1 1-2 1-3 1-4 1-5 1-6
+## 2-1   2   5   3   4   3   2
+## 2-2   2   2  13   1   1   1
+## 2-3   1   1   2  11   2   2
+## 2-4   2   1   1   1  10   1
+## 2-5   1   2   1   2   2  15
+## 2-6  14   2   2   2   1   1
 ```
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>

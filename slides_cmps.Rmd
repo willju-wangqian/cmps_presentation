@@ -14,39 +14,15 @@ output:
 class: primary-blue
 ## Install
 
+<br>  
+
+- Since the package is not on CRAN yet, you can install the development version by:  
 ```{r tidy=FALSE, eval=FALSE}
-# install.packages("devtools")
+install.packages("devtools")
 devtools::install_github("willju-wangqian/CMPS")
 ```
 
----
-class: primary-blue
-## The Main Function
-
-```{r, eval=FALSE}
-library(CMPS)
-
-data("bullets")
-land23 <- bullets$sigs[bullets$bulletland == "2-3"][[1]]
-land12 <- bullets$sigs[bullets$bulletland == "1-2"][[1]]
-
-x <- land23$sig
-y <- land12$sig
-
-cmps_result <- extract_feature_cmps(x, y, 
-                             seg_scale_max = 3, npeaks.set = c(5, 3, 1),
-                             seg_length = 50, Tx = 25, full_result = TRUE)
-
-# extract_feature_cmps(
-#   x,
-#   y,
-#   seg_length = 50,
-#   seg_scale_max = 3,
-#   Tx = 25,
-#   npeaks.set = c(5, 3, 1),
-#   full_result = FALSE
-# )
-```
+- The website of the package: [https://willju-wangqian.github.io/CMPS/](https://willju-wangqian.github.io/CMPS/)
 
 ---
 class: primary-blue
@@ -58,41 +34,77 @@ class: primary-blue
   
 - if we plot signatures `x` and `y`, we have
 .img50[![](images/step0.png)]
+  - In this example, `x` and `y` are signatures of a Known Match comparison
+
+---
+class: primary-blue
+## The Main Function
+
+```{r, eval=FALSE}
+library(CMPS)
+
+cmps_result <- extract_feature_cmps(x, y)
+
+## this comment shows default values of different arguments
+## for more information, use ?extract_feature_cmps 
+# extract_feature_cmps(
+#   x,
+#   y,
+#   seg_length = 50,          
+#   seg_scale_max = 3,
+#   Tx = 25,
+#   npeaks.set = c(5, 3, 1),
+#   full_result = FALSE
+# )
+```
+
+```{r, echo=FALSE}
+cmps_full_result <- readRDS("ppt_object3_cmps_result.rds")
+cmps_result <- cmps_full_result$CMPS.score
+```
+
+```{r}
+cmps_result
+```
+
+- The output of the function (by default) is the CMPS score of this comparison
+
+```{r, echo=FALSE, eval=FALSE}
+---
+class: primary-blue
+## Output
+
+- `CMPS.score`: the CMPS score of this comparison
+- `nseg`: the number of basis segments obtained from the reference profile
+- `rec.position`: the recommended position that results in the CMPS score
+- `pos.df`: a dataframe that includes all positions and their corresponding CMPS score
+
+## ```{r}
+# cmps_full_result$CMPS.score
+# cmps_full_result$nseg
+# cmps_full_result$rec.position
+# ```
+#
+# ```{r, eval=FALSE}
+# cmps_full_result$pos.df
+## ```
+```
+
 
 ---
 class: primary-blue
 ## Multi segment lengths
+
+- multi-peak inspection
+  - `seg_scale_max = 1, npeaks.set = c(5)`
+  - faster in running speed
 
 - multi-peak inspection at different segment scales
   - `seg_scale_max = 3, npeaks.set = c(5, 3, 1)`
   - detect 5 peaks at scale one; 3 peaks at scale two; 1 peak at scale three
   - default setting
   
-- multi-peak inspection
-  - `seg_scale_max = 1, npeaks.set = c(5)`
-  - faster in running speed
 
----
-class: primary-blue
-## Output
-- `CMPS.score`: the CMPS score of this comparison
-- `nseg`: the number of basis segments obtained from the reference profile
-- `rec.position`: the recommended position that results in the CMPS score
-- `pos.df`: a dataframe that includes all positions and their corresponding CMPS score
-
-```{r, echo=FALSE}
-cmps_result <- readRDS("ppt_object3_cmps_result.rds")
-```
-
-```{r}
-cmps_result$CMPS.score
-cmps_result$nseg
-cmps_result$rec.position
-```
-
-```{r, eval=FALSE}
-cmps_result$pos.df
-```
 
 ---
 class: primary-blue
@@ -107,13 +119,10 @@ data("bullets")
 bullets$source
 ```
   
-- We have two bullets, and each bullet has 6 lands
+- we have two bullets, and each bullet has 6 lands (6 signatures)
+- in total, we have 36 comparisons
 
----
-class: primary-blue
-## Full Comparison of Two Bullets
-
-```{r, eval=FALSE}
+```{r, eval=FALSE, echo=FALSE}
 library(tidyverse)
 library(bulletxtrctr)
 library(CMPS)
@@ -146,7 +155,7 @@ class: primary-blue
 cp1 <- readRDS("ppt_object2_cp1.rds")
 ```
 
-```{r, eval=FALSE}
+```{r, eval=FALSE, echo=FALSE}
 # Compute the CMPS score
 comparisons.cmps <- comparisons %>%
   mutate(cmps = aligned %>% purrr::map_dbl(.f = function(a) {
@@ -156,17 +165,13 @@ comparisons.cmps <- comparisons %>%
 cp1 <- comparisons.cmps %>% select(land1, land2, cmps)
 ```
 
-```{r}
+```{r, eval=FALSE, echo=FALSE}
 head(cp1, 10)
 ```
 
----
-class: primary-blue
-## Full Comparison of Two Bullets
+- present the results in a matrix form
 
-We can also convert the result into a matrix
-
-```{r}
+```{r,  echo=FALSE}
 cp1.matrix <- matrix(nrow = 6, ncol = 6)
 
 for(i in 1:6) {
@@ -175,6 +180,8 @@ for(i in 1:6) {
 
 rownames(cp1.matrix) <- paste("1", 1:6, sep = '-')
 colnames(cp1.matrix) <- paste("2", 1:6, sep = '-')
+
+cp1.matrix <- t(cp1.matrix)
 ```
 
 ```{r}
