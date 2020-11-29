@@ -182,10 +182,11 @@ rownames(cp1.matrix) <- paste("1", 1:6, sep = '-')
 colnames(cp1.matrix) <- paste("2", 1:6, sep = '-')
 
 cp1.matrix <- t(cp1.matrix)
+full_comparison.matrix <- cp1.matrix
 ```
 
 ```{r}
-cp1.matrix
+full_comparison.matrix
 ```
 
 ---
