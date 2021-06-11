@@ -1,7 +1,7 @@
 ---
 title: "CMPS Package"
-author: "Wangqian (Will) Ju"
-date: "2020-11-25"
+author: "Wangqian (Will) Ju, Dr. Heike Hofmann"
+date: "2020-12-01"
 output:
   xaringan::moon_reader:
     mathjax: "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_HTMLorMML"
@@ -12,17 +12,45 @@ output:
 ---
 
 class: primary-blue
+## Overview
+
+- Congruent Matching Profile Segments (CMPS) algorithm  
+(Chen et al. 2019)
+
+.img75[![](images/cmps_overview.jpg)]
+
+.footer[Chen, Zhe, Wei Chu, Johannes A Soons, Robert M Thompson, John Song, and Xuezeng Zhao. 2019. “Fired Bullet Signature Correlation Using the Congruent Matching Profile Segments (CMPS) Method.” Forensic Science International, December, #109964.]
+
+---
+class: primary-blue
+## Overview
+
+- Multi Segment Lengths  
+
+.pull-left[
+.img100[![](images/step5_1.png)]
+].pull-right[
+.img100[![](images/step5_2.png)]
+]  
+
+
+
+---
+
+class: primary-blue
 ## Install
 
 <br>  
 
-- Since the package is not on CRAN yet, you can install the development version by:  
+- Since the package is not on CRAN yet, users can install the development version:  
 ```{r tidy=FALSE, eval=FALSE}
 install.packages("devtools")
 devtools::install_github("willju-wangqian/CMPS")
 ```
 
 - The website of the package: [https://willju-wangqian.github.io/CMPS/](https://willju-wangqian.github.io/CMPS/)
+
+- Chen, Zhe, Wei Chu, Johannes A Soons, Robert M Thompson, John Song, and Xuezeng Zhao. 2019. “Fired Bullet Signature Correlation Using the Congruent Matching Profile Segments (CMPS) Method.” Forensic Science International, December, #109964. [https://doi.org/10.1016/j.forsciint.2019.109964](https://doi.org/10.1016/j.forsciint.2019.109964)
 
 ---
 class: primary-blue
@@ -32,9 +60,9 @@ class: primary-blue
   - `x` is the vector of the reference bullet signature/profile that will be divided into basis segments
   - `y` is the vector of the comparison bullet signature/profile
   
-- if we plot signatures `x` and `y`, we have
+- if we plot profiles `x` and `y`, we have
 .img50[![](images/step0.png)]
-  - In this example, `x` and `y` are signatures of a Known Match comparison
+  - In this example, `x` and `y` are profiles of a Known Matching comparison
 
 ---
 class: primary-blue
@@ -95,22 +123,33 @@ class: primary-blue
 class: primary-blue
 ## Multi segment lengths
 
-- multi-peak inspection
+- "multi-peak inspection" (the basic version)
   - `seg_scale_max = 1, npeaks.set = c(5)`
   - faster in running speed
 
-- multi-peak inspection at different segment scales
+```{r, eval=FALSE}
+extract_feature_cmps(x, y,
+                     seg_scale_max = 1, npeaks.set = c(5))
+```
+
+
+- "multi-peak inspection at different segment scales" (multi segment length)
   - `seg_scale_max = 3, npeaks.set = c(5, 3, 1)`
   - detect 5 peaks at scale one; 3 peaks at scale two; 1 peak at scale three
   - default setting
   
+```{r, eval=FALSE}
+extract_feature_cmps(x, y,
+                     seg_scale_max = 3, npeaks.set = c(5, 3, 1))
+```
 
+.footer[Chen et al. 2019]
 
 ---
 class: primary-blue
 ## Full Comparison of Two Bullets
 
-- The bullet examples are coming from Hamby252; the url of these bullets are stored in `bullets$source`
+- The bullet examples are coming from Hamby252; the URL of these bullets are stored in `bullets$source`
 
 ```{r, eval=FALSE}
 library(CMPS)
@@ -119,8 +158,8 @@ data("bullets")
 bullets$source
 ```
   
-- we have two bullets, and each bullet has 6 lands (6 signatures)
-- in total, we have 36 comparisons
+- we have two bullets, and each bullet has 6 lands (6 bullet signatures/profiles)
+- in total, we have 36 comparisons, and 6 of them are Known Matching comparisons
 
 ```{r, eval=FALSE, echo=FALSE}
 library(tidyverse)
@@ -169,7 +208,7 @@ cp1 <- comparisons.cmps %>% select(land1, land2, cmps)
 head(cp1, 10)
 ```
 
-- present the results in a matrix form
+- present the CMPS score in a matrix form
 
 ```{r,  echo=FALSE}
 cp1.matrix <- matrix(nrow = 6, ncol = 6)
@@ -188,6 +227,8 @@ full_comparison.matrix <- cp1.matrix
 ```{r}
 full_comparison.matrix
 ```
+
+- $CMPS_{max} = 15$
 
 ---
 class: inverse-blue, center, middle
